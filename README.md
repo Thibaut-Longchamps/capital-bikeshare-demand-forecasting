@@ -255,5 +255,4 @@ On a first run, predictions will only work if the dataset and model have already
 ## 11. Main documentation files
 
 - `README.md`: historical project documentation
-- `README_QUICKSTART.md`: quick start guide
 - `NOTE_METHODE.md`: additional methodology notes

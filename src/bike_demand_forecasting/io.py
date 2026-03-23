@@ -19,9 +19,9 @@ def extract_all_zips(data_dir: Path, extract_dir: Path) -> None:
             shutil.rmtree(macosx_dir)
 
         print(f"{path}: extracted")
-        
-        
-        
+
+
+
 def merge_all_csv(extract_dir: Path, output_csv: Path, encoding: str = "latin-1") -> Path:
     """
     Retrieve all csv files for a year and concat them

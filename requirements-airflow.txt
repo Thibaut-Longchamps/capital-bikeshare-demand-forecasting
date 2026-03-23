@@ -1,0 +1,11 @@
+apache-airflow==3.1.8
+apache-airflow-providers-fab
+psycopg2-binary
+asyncpg
+
+
+## INSTALL
+# source env_bike/bin/activate
+# python -m pip install --upgrade pip
+# python -m pip install -r requirements-airflow.txt \
+#  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.1.8/constraints-3.12.txt"

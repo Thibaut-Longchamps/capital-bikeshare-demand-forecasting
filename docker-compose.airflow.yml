@@ -1,0 +1,151 @@
+services:
+  postgres:
+    image: postgres:16
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  airflow-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      AIRFLOW_HOME: /app/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /app/airflow/dags
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BIKE_PYTHON_BIN: python
+    command: >
+      sh -c "
+      mkdir -p /app/.airflow/logs &&
+      airflow db migrate &&
+      airflow users list | grep -q '${AIRFLOW_ADMIN_USERNAME}' ||
+      airflow users create
+      --username '${AIRFLOW_ADMIN_USERNAME}'
+      --firstname '${AIRFLOW_ADMIN_FIRSTNAME}'
+      --lastname '${AIRFLOW_ADMIN_LASTNAME}'
+      --role Admin
+      --email '${AIRFLOW_ADMIN_EMAIL}'
+      --password '${AIRFLOW_ADMIN_PASSWORD}'
+      "
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./airflow:/app/airflow
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.airflow/logs:/app/.airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-dag-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      AIRFLOW_HOME: /app/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /app/airflow/dags
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BIKE_PYTHON_BIN: python
+    command: airflow dag-processor
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./airflow:/app/airflow
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.airflow/logs:/app/.airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      AIRFLOW_HOME: /app/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /app/airflow/dags
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BIKE_PYTHON_BIN: python
+    command: airflow scheduler
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./airflow:/app/airflow
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.airflow/logs:/app/.airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-api-server:
+        condition: service_healthy
+
+  airflow-api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      AIRFLOW_HOME: /app/.airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /app/airflow/dags
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BIKE_PYTHON_BIN: python
+    command: airflow api-server --host ${AIRFLOW_WEBSERVER_HOST} --port ${AIRFLOW_WEBSERVER_PORT}
+    restart: unless-stopped
+    ports:
+      - "${AIRFLOW_WEBSERVER_PORT}:${AIRFLOW_WEBSERVER_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${AIRFLOW_WEBSERVER_PORT}/api/v2/monitor/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./airflow:/app/airflow
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./.airflow/logs:/app/.airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-db-volume:

@@ -1,0 +1,45 @@
+.git
+.gitignore
+.env
+.vscode/
+.idea/
+
+__pycache__/
+*.py[cod]
+*.so
+
+env_bike/
+.venv/
+venv/
+
+.ipynb_checkpoints/
+notebooks/
+
+# Runtime data and model artifacts are mounted at runtime and should not be sent in the build context.
+data/
+models/
+
+build/
+dist/
+.eggs/
+*.egg-info/
+
+.airflow/
+
+# Runtime outputs should stay on mounted volumes, not inside the image build context.
+data/processed/predictions/
+data/processed/rebalancing/
+
+# Local caches and transient files.
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+*.log
+
+# Windows / macOS filesystem noise.
+Thumbs.db
+.DS_Store

@@ -1,0 +1,46 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command: uvicorn main:app --app-dir api_service --host ${API_HOST} --port ${API_PORT}
+
+    ports: 
+      - "${API_PORT}:${API_PORT}"
+
+    # local_path:container_path
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${API_PORT}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command: python -m streamlit run streamlit_app/app.py --server.address ${STREAMLIT_HOST} --server.port ${STREAMLIT_PORT}
+
+    ports: 
+      - "${STREAMLIT_PORT}:${STREAMLIT_PORT}"
+
+    # local_path:container_path
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+    
+    

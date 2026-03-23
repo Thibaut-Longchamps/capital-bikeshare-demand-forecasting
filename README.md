@@ -11,6 +11,15 @@ This project lets you:
 - visualize results in a Streamlit interface
 - orchestrate dataset rebuilding and retraining workflows with Airflow
 
+=======
+## Demo
+
+### Presentation video
+[Open the demo video](demo_assets/viedeo-streamlit-airflow_compressed.mp4)
+
+### FastAPI screenshot
+![FastAPI screenshot](demo_assets/api.jpg)
+
 ## Prerequisites
 
 - Docker and Docker Compose
@@ -255,4 +264,8 @@ On a first run, predictions will only work if the dataset and model have already
 ## 11. Main documentation files
 
 - `README.md`: historical project documentation
+<<<<<<< HEAD
+=======
+- `README_QUICKSTART.md`: quick start guide
+>>>>>>> 5a6c75b (Add README and demo assets)
 - `NOTE_METHODE.md`: additional methodology notes

@@ -15,7 +15,7 @@ This project lets you:
 ## Demo
 
 ### Presentation video
-[Open the demo video](demo_assets/video_streamlit_airflow.gif)
+![Open the demo video](demo_assets/video_streamlit_airflow.gif)
 
 ### FastAPI screenshot
 ![FastAPI screenshot](demo_assets/api.jpg)
